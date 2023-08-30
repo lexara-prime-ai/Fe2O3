@@ -1,38 +1,30 @@
-fn main() {
-    print_to_console();
+use async_std::net::TcpStream;
+use tiberius::{AuthMethod, Client, Config, Query};
+
+#[async_std::main]
+async fn main() -> anyhow::Result<()> {
+    let mut config = Config::new();
+
+    config.host("localhost"); 
+    config.port(1433);
+ 
+    config.authentication(AuthMethod::sql_server("sa", "sqlpwd"));
+
+    config.trust_cert();
+
+    let tcp = TcpStream::connect(config.get_addr()).await?;
+    tcp.set_nodelay(true)?;
+
+    let mut client = Client::connect(config, tcp).await?;
+
+    let mut select = Query::new("SELECT @P1");
+    select.bind(-4i32);
+
+    let stream = select.query(&mut client).await?;
+    let row = stream.into_row().await?;
+
+    assert_eq!(Some(-4i32), row.unwrap().get(0));
+
+
+    Ok(())
 }
-
-fn print_to_console() {
-    let num: i32 = 16;
-    let target: i32 = 12;
-
-    loop {
-        
-    }
-}
-
-// Define a struct Point with x and y fields. Destructure an instance of it.
-
-// Question 4: How do you create a procedural macro in Rust?
-
-//Answer: To create a procedural macro in Rust, you need to define a separate crate with a special attribute. Procedural macros use the proc_macro crate. Here's a simplified example of a procedural macro that generates getter methods for struct fields:
-
-// use proc_macro::TokenStream;
-// use quote::quote;
-// use syn::{parse_macro_input, DeriveInput};
-
-// #[proc_macro]
-// pub fn generate_getters(input: TokenStream) -> TokenStream {
-//     let input = parse_macro_input!(input as DeriveInput);
-
-//     let struct_name = &input.ident;
-//     let fields = input.data.fields.iter().map(|field| &field.ident);
-
-//     let gen = quote! {
-//         impl #struct_name {
-//             #(pub fn #fields(&self) -> &#fields::type { &self.#fields })*
-//         }
-//     };
-
-//     gen.into()
-// }
