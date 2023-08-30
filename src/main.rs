@@ -8,7 +8,7 @@ async fn main() -> anyhow::Result<()> {
     config.host("localhost"); 
     config.port(1433);
  
-    config.authentication(AuthMethod::sql_server("sa", "sqlpwd"));
+    config.authentication(AuthMethod::sql_server("USER ID", "PASSWORD"));
 
     config.trust_cert();
 
